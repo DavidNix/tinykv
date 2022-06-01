@@ -1,18 +1,18 @@
 package tinykv
 
-type data struct {
+type tuple struct {
 	Value   string
 	Deleted bool
 }
 
 type Store struct {
-	db    map[string]data
+	db    map[string]tuple
 	index map[string]int
 }
 
 func NewStore() *Store {
 	return &Store{
-		db:    make(map[string]data),
+		db:    make(map[string]tuple),
 		index: make(map[string]int),
 	}
 }
@@ -22,7 +22,7 @@ func (store *Store) Set(k, v string) {
 	if !ok {
 		store.index[v]++
 	}
-	store.db[k] = data{Value: v}
+	store.db[k] = tuple{Value: v}
 }
 
 func (store *Store) Get(k string) string {
