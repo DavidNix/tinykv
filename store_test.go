@@ -22,3 +22,14 @@ func TestStore_SetGet(t *testing.T) {
 		require.Equal(t, "NULL", got)
 	})
 }
+
+func TestStore_Delete(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		store := NewStore()
+		store.Set("test", "1")
+		store.Delete("test")
+		got := store.Get("test")
+
+		require.Equal(t, "NULL", got)
+	})
+}
