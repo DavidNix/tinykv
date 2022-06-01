@@ -6,16 +6,22 @@ type data struct {
 }
 
 type Store struct {
-	db map[string]data
+	db    map[string]data
+	index map[string]int
 }
 
 func NewStore() *Store {
 	return &Store{
-		db: make(map[string]data),
+		db:    make(map[string]data),
+		index: make(map[string]int),
 	}
 }
 
 func (store *Store) Set(k, v string) {
+	_, ok := store.db[k]
+	if !ok {
+		store.index[v]++
+	}
 	store.db[k] = data{Value: v}
 }
 
@@ -36,6 +42,13 @@ func (store *Store) Delete(k string) {
 	if !ok {
 		return
 	}
+	if !found.Deleted {
+		store.index[found.Value]--
+	}
 	found.Deleted = true
 	store.db[k] = found
+}
+
+func (store *Store) Count(val string) int {
+	return store.index[val]
 }
