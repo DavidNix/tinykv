@@ -1,6 +1,7 @@
 package tinykv
 
 type Tuple struct {
+	Key     string
 	Value   string
 	Deleted bool
 }
@@ -20,12 +21,20 @@ func NewStore() *Store {
 func (store *Store) Set(k, v string) *Tuple {
 	existing, ok := store.db[k]
 	if !ok {
-		tup := &Tuple{Value: v}
+		tup := &Tuple{Key: k, Value: v}
 		store.db[k] = tup
 		store.index.Add(tup)
 		return tup
 	}
-	store.index.Remove(existing)
+
+	if existing.Value != v {
+		existing.Deleted = true
+		tup := &Tuple{Key: k, Value: v}
+		store.db[k] = tup
+		store.index.Add(tup)
+		return tup
+	}
+
 	existing.Value = v
 	existing.Deleted = false
 	store.index.Add(existing)
@@ -49,6 +58,6 @@ func (store *Store) Delete(k string) (*Tuple, bool) {
 	return found, true
 }
 
-func (store *Store) Count(k string) int {
-	return store.index.Count(k)
+func (store *Store) Count(val string) int {
+	return store.index.Count(val)
 }

@@ -13,18 +13,12 @@ func TestIndex(t *testing.T) {
 		tup := &Tuple{Value: "test"}
 
 		idx.Add(tup)
-		idx.Add(&Tuple{Value: "test"})
-		idx.Add(&Tuple{Value: "test", Deleted: true})
+		idx.Add(&Tuple{Value: "test", Key: "1"})
+		idx.Add(&Tuple{Value: "test", Key: "1"})
+		idx.Add(&Tuple{Value: "test", Key: "2", Deleted: true})
 		idx.Add(&Tuple{Value: "another"})
 
 		require.Equal(t, 2, idx.Count("test"))
-
-		idx.Remove(tup)
-		require.Equal(t, 1, idx.Count("test"))
-
-		require.NotPanics(t, func() {
-			idx.Remove(&Tuple{Value: "never added"})
-		})
 	})
 
 	t.Run("invalid input", func(t *testing.T) {
@@ -33,9 +27,5 @@ func TestIndex(t *testing.T) {
 		require.Panics(t, func() {
 			idx.Add(nil)
 		})
-		require.Panics(t, func() {
-			idx.Remove(nil)
-		})
 	})
-
 }

@@ -11,17 +11,13 @@ func (idx Index) Add(tup *Tuple) {
 	if set == nil {
 		set = make(map[*Tuple]struct{})
 	}
+	for existing := range set {
+		if existing.Key == tup.Key {
+			delete(set, existing)
+		}
+	}
 	set[tup] = struct{}{}
 	idx[val] = set
-}
-
-func (idx Index) Remove(tup *Tuple) {
-	idx.panicIfNil(tup)
-	set := idx[tup.Value]
-	if set == nil {
-		return
-	}
-	delete(set, tup)
 }
 
 func (idx Index) Count(val string) int {

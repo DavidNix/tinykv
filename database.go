@@ -13,8 +13,9 @@ func NewDatabase() *Database {
 
 func (db *Database) Get(k string) string {
 	const null = "NULL"
-	for _, tx := range append(db.txs, db.committed) {
-		if found, ok := tx.Get(k); ok {
+	reverse := append([]*Store{db.committed}, db.txs...)
+	for i := len(reverse) - 1; i >= 0; i-- {
+		if found, ok := reverse[i].Get(k); ok {
 			if found.Deleted {
 				return null
 			}
@@ -35,7 +36,7 @@ func (db *Database) Set(k, v string) {
 func (db *Database) Delete(k string) {
 	var foundVal string
 	reverse := append([]*Store{db.committed}, db.txs...)
-	for i := len(reverse) - 1; i < len(reverse); i-- {
+	for i := len(reverse) - 1; i >= 0; i-- {
 		v, ok := reverse[i].Get(k)
 		if ok {
 			foundVal = v.Value
@@ -53,7 +54,7 @@ func (db *Database) Delete(k string) {
 }
 
 func (db *Database) Count(val string) int {
-	return 0
+	return db.committed.Count(val)
 }
 
 func (db *Database) Begin() {

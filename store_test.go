@@ -21,6 +21,7 @@ func TestStore_SetGet(t *testing.T) {
 
 		require.Equal(t, "2", got.Value)
 		require.False(t, got.Deleted)
+		require.Equal(t, "test", got.Key)
 	})
 
 	t.Run("key does not exist", func(t *testing.T) {
