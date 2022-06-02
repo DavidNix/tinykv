@@ -52,6 +52,16 @@ func TestStore_Count(t *testing.T) {
 		require.Equal(t, 5, got)
 	})
 
+	t.Run("changing values", func(t *testing.T) {
+		store := NewStore()
+		store.Set("first", "1")
+		store.Set("second", "1")
+		store.Set("first", "2")
+		got := store.Count("1")
+
+		require.Equal(t, 1, got)
+	})
+
 	t.Run("value does not exist", func(t *testing.T) {
 		store := NewStore()
 		got := store.Count("nope")

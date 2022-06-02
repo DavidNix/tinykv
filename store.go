@@ -18,9 +18,11 @@ func NewStore() *Store {
 }
 
 func (store *Store) Set(k, v string) {
-	_, ok := store.db[k]
+	old, ok := store.db[k]
 	if !ok {
 		store.index[v]++
+	} else if v != old.Value {
+		store.index[old.Value]--
 	}
 	store.db[k] = tuple{Value: v}
 }
