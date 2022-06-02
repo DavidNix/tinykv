@@ -32,6 +32,16 @@ func (idx Index) Count(val string) int {
 	return count
 }
 
+func (idx Index) Clone() Index {
+	clone := make(Index)
+	for _, set := range idx {
+		for tup := range set {
+			clone.Add(tup)
+		}
+	}
+	return clone
+}
+
 func (idx Index) panicIfNil(tup *Tuple) {
 	if tup == nil {
 		panic(errors.New("nil tuple"))

@@ -8,13 +8,13 @@ type Tuple struct {
 
 type Store struct {
 	db    map[string]*Tuple
-	index Index
+	Index Index
 }
 
 func NewStore() *Store {
 	return &Store{
 		db:    make(map[string]*Tuple),
-		index: make(Index),
+		Index: make(Index),
 	}
 }
 
@@ -23,7 +23,7 @@ func (store *Store) Set(k, v string) *Tuple {
 	if !ok {
 		tup := &Tuple{Key: k, Value: v}
 		store.db[k] = tup
-		store.index.Add(tup)
+		store.Index.Add(tup)
 		return tup
 	}
 
@@ -31,13 +31,13 @@ func (store *Store) Set(k, v string) *Tuple {
 		existing.Deleted = true
 		tup := &Tuple{Key: k, Value: v}
 		store.db[k] = tup
-		store.index.Add(tup)
+		store.Index.Add(tup)
 		return tup
 	}
 
 	existing.Value = v
 	existing.Deleted = false
-	store.index.Add(existing)
+	store.Index.Add(existing)
 	return existing
 }
 
@@ -59,5 +59,5 @@ func (store *Store) Delete(k string) (*Tuple, bool) {
 }
 
 func (store *Store) Count(val string) int {
-	return store.index.Count(val)
+	return store.Index.Count(val)
 }

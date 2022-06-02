@@ -30,6 +30,7 @@ func TestDatabase_BeginRollback(t *testing.T) {
 		db := NewDatabase()
 		db.Set("test1", "1")
 		db.Set("test2", "1")
+		require.Equal(t, 2, db.Count("1"))
 
 		db.Begin()
 
@@ -39,9 +40,17 @@ func TestDatabase_BeginRollback(t *testing.T) {
 		db.Delete("test2")
 		require.Zero(t, db.Count("1"))
 
-		db.Rollback()
+		require.True(t, db.Rollback())
 
 		require.Equal(t, 2, db.Count("1"))
+	})
+
+	t.Run("no transactions", func(t *testing.T) {
+		db := NewDatabase()
+		require.False(t, db.Rollback())
+
+		db.Begin()
+		require.True(t, db.Rollback())
 	})
 }
 

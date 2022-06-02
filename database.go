@@ -26,11 +26,7 @@ func (db *Database) Get(k string) string {
 }
 
 func (db *Database) Set(k, v string) {
-	if tx := db.currentTx(); tx != nil {
-		tx.Set(k, v)
-		return
-	}
-	db.committed.Set(k, v)
+	db.currentStore().Set(k, v)
 }
 
 func (db *Database) Delete(k string) {
@@ -43,34 +39,34 @@ func (db *Database) Delete(k string) {
 			break
 		}
 	}
-	if tx := db.currentTx(); tx != nil {
-		if len(foundVal) > 0 {
-			tx.Set(k, foundVal)
-		}
-		tx.Delete(k)
-		return
+	store := db.currentStore()
+	if len(foundVal) > 0 {
+		store.Set(k, foundVal)
 	}
-	db.committed.Delete(k)
+	store.Delete(k)
 }
 
 func (db *Database) Count(val string) int {
-	return db.committed.Count(val)
+	return db.currentStore().Count(val)
 }
 
 func (db *Database) Begin() {
-	db.txs = append(db.txs, NewStore())
+	store := NewStore()
+	store.Index = db.currentStore().Index.Clone()
+	db.txs = append(db.txs, store)
 }
 
-func (db *Database) Rollback() {
+func (db *Database) Rollback() bool {
 	if len(db.txs) == 0 {
-		return
+		return false
 	}
 	db.txs = db.txs[:len(db.txs)-1]
+	return true
 }
 
-func (db *Database) currentTx() *Store {
+func (db *Database) currentStore() *Store {
 	if len(db.txs) == 0 {
-		return nil
+		return db.committed
 	}
 	return db.txs[len(db.txs)-1]
 }
