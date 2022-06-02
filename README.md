@@ -20,5 +20,7 @@ make test
 ```
 
 ## TODOs
-* Counts within transactions do not work. There is a failing unit test showing as such.
+* `COUNT` within transactions do not work. There is a failing unit test showing as such.
+* `COMMIT` needs unit test coverage.
 * Abstract interactive functionality in `main()` into a testable component.
+* A `VACUUM` command may be useful to purge deleted tuples.
