@@ -32,14 +32,12 @@ func (idx Index) Count(val string) int {
 	return count
 }
 
-func (idx Index) Clone() Index {
-	clone := make(Index)
-	for _, set := range idx {
+func (idx Index) Merge(other Index) {
+	for _, set := range other {
 		for tup := range set {
-			clone.Add(tup)
+			idx.Add(tup)
 		}
 	}
-	return clone
 }
 
 func (idx Index) panicIfNil(tup *Tuple) {

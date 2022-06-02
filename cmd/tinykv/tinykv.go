@@ -37,6 +37,8 @@ func main() {
 			if ok := db.Rollback(); !ok {
 				fmt.Println("TRANSACTION NOT FOUND")
 			}
+		case "COMMIT":
+			db.Commit()
 		case "GET":
 			if len(args) == 0 {
 				fmt.Println("Missing KEY argument.")

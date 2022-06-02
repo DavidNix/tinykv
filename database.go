@@ -47,13 +47,12 @@ func (db *Database) Delete(k string) {
 }
 
 func (db *Database) Count(val string) int {
+	// TODO: This is incorrect.
 	return db.currentStore().Count(val)
 }
 
 func (db *Database) Begin() {
-	store := NewStore()
-	store.Index = db.currentStore().Index.Clone()
-	db.txs = append(db.txs, store)
+	db.txs = append(db.txs, NewStore())
 }
 
 func (db *Database) Rollback() bool {
@@ -62,6 +61,11 @@ func (db *Database) Rollback() bool {
 	}
 	db.txs = db.txs[:len(db.txs)-1]
 	return true
+}
+
+func (db *Database) Commit() {
+	db.committed.Merge(db.txs...)
+	db.txs = nil
 }
 
 func (db *Database) currentStore() *Store {
