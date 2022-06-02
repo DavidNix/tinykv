@@ -27,23 +27,20 @@ func (store *Store) Set(k, v string) {
 	store.db[k] = tuple{Value: v}
 }
 
-func (store *Store) Get(k string) string {
+func (store *Store) Get(k string) (entry string, tupleExists bool) {
 	const null = "NULL"
 	found, ok := store.db[k]
 	if !ok {
-		return null
+		return null, false
 	}
 	if found.Deleted {
-		return null
+		return null, true
 	}
-	return found.Value
+	return found.Value, true
 }
 
 func (store *Store) Delete(k string) {
-	found, ok := store.db[k]
-	if !ok {
-		return
-	}
+	found := store.db[k]
 	if !found.Deleted {
 		store.index[found.Value]--
 	}
@@ -53,4 +50,15 @@ func (store *Store) Delete(k string) {
 
 func (store *Store) Count(val string) int {
 	return store.index[val]
+}
+
+func (store *Store) Clone() *Store {
+	clone := NewStore()
+	for k, v := range store.db {
+		clone.db[k] = v
+	}
+	for k, v := range store.index {
+		clone.index[k] = v
+	}
+	return clone
 }

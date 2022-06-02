@@ -6,6 +6,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDatabase_BeginRollback(t *testing.T) {
+	db := NewDatabase()
+	db.Set("test", "1")
+	db.Set("delete", "found")
+
+	db.Begin()
+
+	db.Set("test", "2")
+	db.Delete("delete")
+
+	require.Equal(t, "2", db.Get("test"))
+	require.Equal(t, "NULL", db.Get("delete"))
+
+	db.Rollback()
+
+	require.Equal(t, "1", db.Get("test"))
+	require.Equal(t, "found", db.Get("delete"))
+}
+
 func TestDatabase_Feature(t *testing.T) {
 	t.Run("example 1", func(t *testing.T) {
 		db := NewDatabase()
@@ -42,6 +61,25 @@ func TestDatabase_Feature(t *testing.T) {
 	})
 
 	t.Run("example 3", func(t *testing.T) {
+		db := NewDatabase()
+
+		db.Begin()
+		db.Set("a", "foo")
+		require.Equal(t, "foo", db.Get("a"))
+
+		db.Begin()
+		db.Set("a", "bar")
+		require.Equal(t, "bar", db.Get("a"))
+
+		db.Set("a", "baz")
+		db.Rollback()
+		require.Equal(t, "foo", db.Get("a"))
+
+		db.Rollback()
+		require.Equal(t, "NULL", db.Get("a"))
+	})
+
+	t.Run("example 4", func(t *testing.T) {
 		t.Skip("TODO")
 	})
 }
