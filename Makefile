@@ -1,4 +1,4 @@
-default: help
+default: run
 
 .PHONY: help
 help: ## Print this help message
@@ -9,3 +9,6 @@ help: ## Print this help message
 test: ## Run unit tests
 	@go test -cover -short -race -timeout=60s ./...
 
+.PHONY: run
+run: ## Run main package
+	@go run ./cmd/tinykv/tinykv.go
