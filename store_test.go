@@ -13,20 +13,21 @@ func TestStore_SetGet(t *testing.T) {
 		store.Set("test", "1")
 		got, _ := store.Get("test")
 
-		require.Equal(t, "1", got)
+		require.Equal(t, "1", got.Value)
+		require.False(t, got.Deleted)
 
 		store.Set("test", "2")
 		got, _ = store.Get("test")
 
-		require.Equal(t, "2", got)
+		require.Equal(t, "2", got.Value)
+		require.False(t, got.Deleted)
 	})
 
 	t.Run("key does not exist", func(t *testing.T) {
 		store := NewStore()
-		got, ok := store.Get("test")
+		_, ok := store.Get("test")
 
 		require.False(t, ok)
-		require.Equal(t, "NULL", got)
 	})
 }
 
@@ -38,7 +39,7 @@ func TestStore_Delete(t *testing.T) {
 		got, ok := store.Get("test")
 
 		require.True(t, ok)
-		require.Equal(t, "NULL", got)
+		require.True(t, got.Deleted)
 	})
 }
 
@@ -93,31 +94,4 @@ func TestStore_Count(t *testing.T) {
 		got = store.Count("value")
 		require.Zero(t, got)
 	})
-}
-
-func TestStore_Clone(t *testing.T) {
-	store := NewStore()
-	store.Set("1", "1")
-	store.Set("test", "1")
-	store.Set("2", "2")
-
-	clone := store.Clone()
-
-	for _, tt := range []struct {
-		StoreType string
-		Store     *Store
-	}{
-		{"original", store},
-		{"clone", clone},
-	} {
-		s := tt.Store
-
-		got, _ := s.Get("test")
-		require.Equal(t, "1", got, tt.StoreType)
-
-		got, _ = s.Get("1")
-		require.Equal(t, "1", got, tt.StoreType)
-
-		require.Equal(t, 2, s.Count("1"), tt.StoreType)
-	}
 }

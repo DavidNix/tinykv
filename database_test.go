@@ -7,22 +7,42 @@ import (
 )
 
 func TestDatabase_BeginRollback(t *testing.T) {
-	db := NewDatabase()
-	db.Set("test", "1")
-	db.Set("delete", "found")
+	t.Run("deletes", func(t *testing.T) {
+		db := NewDatabase()
+		db.Set("test", "1")
+		db.Set("delete", "found")
 
-	db.Begin()
+		db.Begin()
 
-	db.Set("test", "2")
-	db.Delete("delete")
+		db.Set("test", "2")
+		db.Delete("delete")
 
-	require.Equal(t, "2", db.Get("test"))
-	require.Equal(t, "NULL", db.Get("delete"))
+		require.Equal(t, "2", db.Get("test"))
+		require.Equal(t, "NULL", db.Get("delete"))
 
-	db.Rollback()
+		db.Rollback()
 
-	require.Equal(t, "1", db.Get("test"))
-	require.Equal(t, "found", db.Get("delete"))
+		require.Equal(t, "1", db.Get("test"))
+		require.Equal(t, "found", db.Get("delete"))
+	})
+
+	t.Run("counts", func(t *testing.T) {
+		db := NewDatabase()
+		db.Set("test1", "1")
+		db.Set("test2", "1")
+
+		db.Begin()
+
+		db.Set("test1", "2")
+		require.Equal(t, 1, db.Count("1"))
+
+		db.Delete("test2")
+		require.Zero(t, db.Count("1"))
+
+		db.Rollback()
+
+		require.Equal(t, 2, db.Count("1"))
+	})
 }
 
 func TestDatabase_Feature(t *testing.T) {

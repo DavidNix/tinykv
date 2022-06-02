@@ -8,18 +8,20 @@ type Database struct {
 func NewDatabase() *Database {
 	return &Database{
 		committed: NewStore(),
-		txs:       nil,
 	}
 }
 
 func (db *Database) Get(k string) string {
-	if tx := db.currentTx(); tx != nil {
+	const null = "NULL"
+	for _, tx := range append(db.txs, db.committed) {
 		if found, ok := tx.Get(k); ok {
-			return found
+			if found.Deleted {
+				return null
+			}
+			return found.Value
 		}
 	}
-	found, _ := db.committed.Get(k)
-	return found
+	return null
 }
 
 func (db *Database) Set(k, v string) {
@@ -31,7 +33,19 @@ func (db *Database) Set(k, v string) {
 }
 
 func (db *Database) Delete(k string) {
+	var foundVal string
+	reverse := append([]*Store{db.committed}, db.txs...)
+	for i := len(reverse) - 1; i < len(reverse); i-- {
+		v, ok := reverse[i].Get(k)
+		if ok {
+			foundVal = v.Value
+			break
+		}
+	}
 	if tx := db.currentTx(); tx != nil {
+		if len(foundVal) > 0 {
+			tx.Set(k, foundVal)
+		}
 		tx.Delete(k)
 		return
 	}
@@ -39,17 +53,11 @@ func (db *Database) Delete(k string) {
 }
 
 func (db *Database) Count(val string) int {
-	return db.committed.Count(val)
+	return 0
 }
 
 func (db *Database) Begin() {
-	var newTx *Store
-	if tx := db.currentTx(); tx != nil {
-		newTx = tx.Clone()
-	} else {
-		newTx = NewStore()
-	}
-	db.txs = append(db.txs, newTx)
+	db.txs = append(db.txs, NewStore())
 }
 
 func (db *Database) Rollback() {

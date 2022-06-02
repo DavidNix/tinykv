@@ -1,64 +1,54 @@
 package tinykv
 
-type tuple struct {
+type Tuple struct {
 	Value   string
 	Deleted bool
 }
 
 type Store struct {
-	db    map[string]tuple
-	index map[string]int
+	db    map[string]*Tuple
+	index Index
 }
 
 func NewStore() *Store {
 	return &Store{
-		db:    make(map[string]tuple),
-		index: make(map[string]int),
+		db:    make(map[string]*Tuple),
+		index: make(Index),
 	}
 }
 
-func (store *Store) Set(k, v string) {
-	old, ok := store.db[k]
+func (store *Store) Set(k, v string) *Tuple {
+	existing, ok := store.db[k]
 	if !ok {
-		store.index[v]++
-	} else if v != old.Value {
-		store.index[old.Value]--
+		tup := &Tuple{Value: v}
+		store.db[k] = tup
+		store.index.Add(tup)
+		return tup
 	}
-	store.db[k] = tuple{Value: v}
+	store.index.Remove(existing)
+	existing.Value = v
+	existing.Deleted = false
+	store.index.Add(existing)
+	return existing
 }
 
-func (store *Store) Get(k string) (entry string, tupleExists bool) {
-	const null = "NULL"
+func (store *Store) Get(k string) (*Tuple, bool) {
 	found, ok := store.db[k]
 	if !ok {
-		return null, false
+		return nil, false
 	}
-	if found.Deleted {
-		return null, true
-	}
-	return found.Value, true
+	return found, true
 }
 
-func (store *Store) Delete(k string) {
-	found := store.db[k]
-	if !found.Deleted {
-		store.index[found.Value]--
+func (store *Store) Delete(k string) (*Tuple, bool) {
+	found, ok := store.db[k]
+	if !ok {
+		return nil, false
 	}
 	found.Deleted = true
-	store.db[k] = found
+	return found, true
 }
 
-func (store *Store) Count(val string) int {
-	return store.index[val]
-}
-
-func (store *Store) Clone() *Store {
-	clone := NewStore()
-	for k, v := range store.db {
-		clone.db[k] = v
-	}
-	for k, v := range store.index {
-		clone.index[k] = v
-	}
-	return clone
+func (store *Store) Count(k string) int {
+	return store.index.Count(k)
 }
